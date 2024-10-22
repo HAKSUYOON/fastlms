@@ -40,8 +40,6 @@ public class SecurityConfiguration {
 
         http.csrf(AbstractHttpConfigurer::disable);
 
-        http.cors(Customizer.withDefaults());
-
         http.authorizeHttpRequests((authorize) ->
                 authorize.
                         requestMatchers("/",
