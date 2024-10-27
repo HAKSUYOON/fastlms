@@ -1,7 +1,7 @@
 package com.zerobase.fastlms.member.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @Entity
-public class Member {
+public class Member implements MemberCode{
 
     @Id
     private String userId;
@@ -23,6 +23,7 @@ public class Member {
     private String phone;
     private String password;
     private LocalDateTime regDt;
+    private LocalDateTime udtDt;
 
     private boolean emailAuthYn;
     private LocalDateTime emailAuthDt;
@@ -31,4 +32,11 @@ public class Member {
     private String resetPasswordKey;
     private LocalDateTime resetPasswordLimitDt;
 
+    private boolean adminYn;
+
+    private String userStatus;
+
+    private String zipcode;
+    private String address;
+    private String addressDetail;
 }

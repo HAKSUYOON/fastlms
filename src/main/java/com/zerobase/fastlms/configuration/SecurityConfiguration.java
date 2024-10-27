@@ -4,24 +4,18 @@ import com.zerobase.fastlms.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-public class SecurityConfiguration {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final MemberService memberService;
 
@@ -35,53 +29,47 @@ public class SecurityConfiguration {
         return new UserAuthenticationFailureHandler();
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable);
+        http.csrf().disable();
 
-        http.authorizeHttpRequests((authorize) ->
-                authorize.
-                        requestMatchers("/",
-                                "/member/register",
-                                "/member/email-auth",
-                                "/member/find/password",
-                                "/member/reset/password").permitAll());
+        http.headers().frameOptions().sameOrigin();
 
-        http.formLogin((authorize) -> authorize.loginPage("/member/login")
+        http.authorizeRequests()
+                .antMatchers("/",
+                        "/member/register",
+                        "/member/email-auth",
+                        "/member/find/password",
+                        "/member/reset/password").permitAll();
+
+        http.authorizeRequests()
+                .antMatchers("/admin/**")
+                .hasAuthority("ROLE_ADMIN");
+
+        http.formLogin()
+                .loginPage("/member/login")
                 .failureHandler(getFailureHandler())
-                .permitAll());
+                .permitAll();
 
-        http.logout((authorize) -> authorize.logoutRequestMatcher(new AntPathRequestMatcher("/member/logout"))
+        http.logout()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/member/logout"))
                 .logoutSuccessUrl("/")
-                .invalidateHttpSession(true));
+                .invalidateHttpSession(true);
 
-        return http.build();
+        http.exceptionHandling()
+                .accessDeniedPage("/error/denied");
+
+        super.configure(http);
     }
 
-    @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        ProviderManager providerManager = (ProviderManager) authenticationConfiguration.getAuthenticationManager();
-        providerManager.getProviders().add(authenticationProvider());
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(memberService);
-        provider.setPasswordEncoder(getPasswordEncoder());
-        return provider;
-    }
-
-    /*
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(MemberService)
-                 .passwordEncoder(getPasswordEncoder());
+        auth.userDetailsService(memberService)
+                .passwordEncoder(getPasswordEncoder());
 
         super.configure(auth);
     }
-     */
+
 
 }
