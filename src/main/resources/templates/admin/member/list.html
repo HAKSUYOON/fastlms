@@ -30,6 +30,10 @@
             font-weight: bold;
             color: red;
         }
+        p.nothing {
+            text-align: center;
+            padding: 100px;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +90,11 @@
                 <td>
                     <p th:if="${x.adminYn}">Y</p>
                     <p th:if="${x.adminYn eq false}">N</p>
+                </td>
+            </tr>
+            <tr th:if="${#lists.size(list) < 1}">
+                <td colspan="7">
+                    <p class="nothing">내용이 없습니다.</p>
                 </td>
             </tr>
           </tbody>
